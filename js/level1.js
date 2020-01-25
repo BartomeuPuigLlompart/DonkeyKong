@@ -15,6 +15,8 @@ platformer.level1 ={
         this.load.image('bg',ruta+'stage_1.png');
         this.load.image('patron',ruta+'patron.png');
         
+        this.load.spritesheet('Mario', ruta+'Mario.png', 31, 26);
+        
         this.load.tilemap('Stage_1','assets/levels/Stage_1.json',null,Phaser.Tilemap.TILED_JSON);
         
         this.cursors = this.game.input.keyboard.createCursorKeys();
@@ -31,6 +33,12 @@ platformer.level1 ={
         this.map.setCollisionBetween(1,1,true,'Walls');
         this.map.setCollisionBetween(1,1,true,'Steps');
         
+        
+        this.mario = this.game.add.sprite(0,0,'Mario',0)
+        this.mario.anchor.setTo(.5);
+        this.game.physics.arcade.enable(this.mario);
+        this.mario.body.setSize(13,16, 10,10);
+        
         //music
         
         this.space = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -41,13 +49,29 @@ platformer.level1 ={
         
     },
     update:function(){        
-        //this.game.physics.arcade.collide(this.mario,this.walls);
+        this.game.physics.arcade.collide(this.mario,this.walls);
+        
+        if(this.cursors.left.isDown){
+                this.mario.body.velocity.x = -gameOptions.heroSpeed;
+                this.mario.scale.x = 1;
+              //  if(!this.steps.isPlaying){
+                //    this.steps.play();
+                //}
+            }else
+            if(this.cursors.right.isDown){
+                this.mario.body.velocity.x = gameOptions.heroSpeed;
+                this.mario.scale.x = -1;
+
+            }else{
+                this.mario.body.velocity.x = 0;
+              //  this.steps.stop();
+            }
         
     },
     
     render:function()
     {
-        //this.game.debug.body(this.megaman);
+        this.game.debug.body(this.mario);
         //this.game.debug.body(this.boss);
         //this.game.debug.body(this.propTops[0]);
         //this.game.debug.body(this.silverWatchers[0]);
