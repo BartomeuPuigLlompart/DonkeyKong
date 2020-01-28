@@ -16,6 +16,9 @@ platformer.level1 ={
         this.load.image('patron',ruta+'patron.png');
         
         this.load.spritesheet('Mario', ruta+'Mario.png', 31, 26);
+        this.load.image('Lives', ruta+'lives.png');
+        this.load.spritesheet('Donkey', ruta+'donkey_anims.png', 56, 40);
+        this.load.spritesheet('Numbers', ruta+'game_numbers.png', 8, 8);
         
         this.load.tilemap('Stage_1','assets/levels/Stage_1.json',null,Phaser.Tilemap.TILED_JSON);
         
@@ -38,6 +41,16 @@ platformer.level1 ={
         this.mario.anchor.setTo(.5);
         this.game.physics.arcade.enable(this.mario);
         this.mario.body.setSize(13,16, 10,10);
+        this.lives = 5;
+        this.livesSprite = [];
+        this.livesSprite[0] = this.game.add.sprite(8, 24, 'Lives');
+        this.livesSprite[1] = this.game.add.sprite(8+8, 24, 'Lives');
+        this.livesSprite[2] = this.game.add.sprite(8+16, 24, 'Lives');
+        this.livesSprite[3] = this.game.add.sprite(8+24, 24, 'Lives');
+        this.livesSprite[4] = this.game.add.sprite(8+32, 24, 'Lives');
+        this.livesSprite[5] = this.game.add.sprite(8+40, 24, 'Lives');
+        
+        this.donkey = this.game.add.sprite(16,44, 'Donkey', 0);
         
         //music
         
@@ -46,6 +59,31 @@ platformer.level1 ={
         this.game.world.setBounds(0,0,gameOptions.gameWidth,gameOptions.gameHeight);
         
         this.loadStairs();
+        
+        //Score
+        this.bonus = 0.5001;
+        this.bonusRef = 0;
+        this.bonusSprite = [];
+        this.bonusSprite[0] = this.game.add.sprite(176,48,'Numbers',parseInt(this.bonus.toString().charAt(2+0))-1+10*2);
+        this.bonusSprite[1] = this.game.add.sprite(176+8,48,'Numbers',parseInt(this.bonus.toString().charAt(2+1))+10*2);
+        this.bonusSprite[2] = this.game.add.sprite(176+16,48,'Numbers',parseInt(this.bonus.toString().charAt(2+2))+10*2);
+        this.bonusSprite[3] = this.game.add.sprite(176+24,48,'Numbers',parseInt(this.bonus.toString().charAt(2+3))+10*2);
+        this.score = 0.000001;
+        this.scoreSprite = [];
+        this.scoreSprite[0] = this.game.add.sprite(8,8,'Numbers',parseInt(this.score.toString().charAt(2+0))-1);
+        this.scoreSprite[1] = this.game.add.sprite(8+8,8,'Numbers',parseInt(this.score.toString().charAt(2+1)));
+        this.scoreSprite[2] = this.game.add.sprite(8+16,8,'Numbers',parseInt(this.score.toString().charAt(2+2)));
+        this.scoreSprite[3] = this.game.add.sprite(8+24,8,'Numbers',parseInt(this.score.toString().charAt(2+3)));
+        this.scoreSprite[4] = this.game.add.sprite(8+32,8,'Numbers',parseInt(this.score.toString().charAt(2+4)));
+        this.scoreSprite[5] = this.game.add.sprite(8+40,8,'Numbers',parseInt(this.score.toString().charAt(2+5)));
+        this.highScore = 0.000001;
+        this.highScoreSprite = [];
+        this.highScoreSprite[0] = this.game.add.sprite(88,8,'Numbers',parseInt(this.highScore.toString().charAt(2+0))-1);
+        this.highScoreSprite[1] = this.game.add.sprite(88+8,8,'Numbers',parseInt(this.highScore.toString().charAt(2+1)));
+        this.highScoreSprite[2] = this.game.add.sprite(88+16,8,'Numbers',parseInt(this.highScore.toString().charAt(2+2)));
+        this.highScoreSprite[3] = this.game.add.sprite(88+24,8,'Numbers',parseInt(this.highScore.toString().charAt(2+3)));
+        this.highScoreSprite[4] = this.game.add.sprite(88+32,8,'Numbers',parseInt(this.highScore.toString().charAt(2+4)));
+        this.highScoreSprite[5] = this.game.add.sprite(88+40,8,'Numbers',parseInt(this.highScore.toString().charAt(2+5)));
         
     },
     update:function(){        
@@ -67,6 +105,40 @@ platformer.level1 ={
               //  this.steps.stop();
             }
         
+        this.updateScore();
+        this.updateLives();
+        
+    },
+    
+    updateScore:function()
+    {
+        this.bonusRef ++;
+        if(this.bonusRef >= 180 && this.bonus >= 0.0100)
+            {
+                this.bonusRef = 0;
+                this.bonus -= 0.0100;
+                this.bonus = this.bonus.toFixed(4);
+            }
+        console.log(this.bonus);
+        this.bonusSprite[this.bonusSprite.length-1].frame = parseInt(this.bonus.toString().charAt(2+this.bonusSprite.length-1))-1+10*2;
+        for(var i = 0; i < this.bonusSprite.length-1; i++){
+        this.bonusSprite[i].frame = parseInt(this.bonus.toString().charAt(2+i))+10*2;
+        }
+        this.scoreSprite[this.scoreSprite.length-1].frame = parseInt(this.score.toString().charAt(2+this.scoreSprite.length-1))-1;
+        this.highScoreSprite[this.scoreSprite.length-1].frame = parseInt(this.highScore.toString().charAt(2+this.scoreSprite.length-1))-1;
+        for(i = 0; i < this.scoreSprite.length-1; i++){
+        this.scoreSprite[i].frame = parseInt(this.score.toString().charAt(2+i));
+        this.highScoreSprite[i].frame = parseInt(this.highScore.toString().charAt(2+i));
+        }
+    },
+    
+    updateLives:function()
+    {
+        for(var i = 0; i < this.livesSprite.length; i++)
+            {
+                if(this.lives < i+1) this.livesSprite[i].visible = false;
+                else this.livesSprite[i].visible = true;
+            }
     },
     
     render:function()
