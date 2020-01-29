@@ -53,6 +53,8 @@ platformer.level2 ={
         this.livesSprite[5] = this.game.add.sprite(8+40, 24, 'Lives');
         
         this.donkey = this.game.add.sprite(0,48, 'Donkey', 0);
+        this.donkey.animations.add('Default', [0, 6, 7], 2, true);
+        this.donkey.animations.play('Default');
         this.donkey.anchor.setTo(.5, 0);
         this.donkey.position.x = gameOptions.gameWidth / 2;
         this.princess = this.game.add.sprite(88, 32-8, 'Princess', 0);
