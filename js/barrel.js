@@ -20,6 +20,7 @@ platformer.barrel = function(_game,_x,_y,_sprite, _anim, _level){
     this.outOfBoundsKill = true;
     if(this.initial == 'fall')this.body.bounce.set(0.4);
     this.collided = 0;
+    this.sumVal = 0;
     console.log(_sprite+' created');
 };
 
@@ -40,6 +41,11 @@ platformer.barrel.prototype.update = function(){
             {
                 this.body.velocity.x = this.speed*this.directionX;
                 this.level.game.physics.arcade.collide(this,this.level.walls);
+                if(this.blue && this.level.game.physics.arcade.collide(this,this.level.oilBarrel)) 
+                {
+                    this.level.oilBarrel.animations.play('fullFire');
+                    this.kill();
+                }
             }
         }
     else
@@ -72,9 +78,9 @@ platformer.barrel.prototype.update = function(){
                                 }
                             break;
                     }
-                var sumVal = (this.level.mario.position.x - this.position.x) * 0.033;
-                if(sumVal > 0.5) sumVal = 0.5;
-                this.body.position.x += sumVal;
+                if(this.body.velocity.y < 0)this.sumVal = (this.level.mario.position.x - this.position.x) * 0.033;
+                if(this.sumVal > 0.5) this.sumVal = 0.5;
+                this.body.position.x += this.sumVal;
             }
         else if(this.level.map.getTileWorldXY(this.position.x, this.position.y+this.height, 8, 1, 'Steps') == null)
             this.animations.play('roll');
