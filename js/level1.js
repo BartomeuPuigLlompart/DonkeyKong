@@ -10,12 +10,14 @@ platformer.level1 ={
         this.game.physics.arcade.gravity.y = gameOptions.heroGravity;
         
     },
+    
     preload:function(){
         var ruta = 'assets/sprites/';
         this.load.image('bg',ruta+'stage_1.png');
         this.load.image('patron',ruta+'Tile.png');
+        this.load.image('hammer', ruta+'hammer.png');
         
-        this.load.spritesheet('Mario', ruta+'Mario.png', 31, 26);
+        this.load.spritesheet('Mario', ruta+'Mario.png', 56, 26);
         this.load.image('Lives', ruta+'lives.png');
         this.load.image('barrelSource', ruta+'barrel_source.png');
         this.load.spritesheet('oilBarrel', ruta+'oil_barrel.png', 24, 32);
@@ -35,6 +37,9 @@ platformer.level1 ={
         
     },
     create:function(){
+        this.poweredUp = false;
+        this.powerCounter = 0;
+        
         this.bg = this.game.add.tileSprite(0,0,gameOptions.gameWidth,gameOptions.gameHeight,'bg');
         this.map = this.game.add.tilemap('Stage_1');
         this.map.addTilesetImage('patron');
@@ -43,9 +48,12 @@ platformer.level1 ={
         this.map.setCollisionBetween(1,1,true,'Walls');
         this.map.setCollisionBetween(1,1,true,'Steps');
         
+            this.timer = this.game.time.create(false);
+        this.timer.add(5000, this.hammerDown);
         
-        
-        
+        this.hammer = this.game.add.sprite(40,70, 'hammer');
+        this.game.physics.arcade.enable(this.hammer);
+        this.hammer.body.allowGravity = false;
         this.donkey = this.game.add.sprite(16,44, 'Donkey', 0);
         this.donkey.animations.add('Default', [0, 6, 7], 2, false);
         this.donkey.animations.add('Horizontal_Normal', [0, 1, 2, 5], 2, false);
@@ -65,10 +73,18 @@ platformer.level1 ={
         this.princess.animations.play('HELP');
         this.helpAnimCount = 0;
         this.helpMsg = this.game.add.sprite(this.princess.x+this.princess.width+1, this.princess.y+1, 'HelpMsg', 0);
+        
+        
         this.mario = this.game.add.sprite(50,230,'Mario',0)
         this.mario.anchor.setTo(.5);
         this.game.physics.arcade.enable(this.mario);
-        this.mario.body.setSize(13,16, 10,10);
+        this.mario.body.setSize(13,16, 20,10);
+        this.mario.animations.add('run',[1,2],15,true);
+        this.mario.animations.add('hammerIdle', [16,17], 10, true);
+        this.mario.animations.add('hammerRun', [18,19], 10, true);
+        this.mario.animations.add('death', [13,14, 15], 5, false);
+        
+        
         this.lives = 5;
         this.livesSprite = [];
         this.livesSprite[0] = this.game.add.sprite(8, 24, 'Lives');
@@ -116,29 +132,51 @@ platformer.level1 ={
     },
     update:function(){        
         this.game.physics.arcade.collide(this.mario,this.walls);
+        if(this.game.physics.arcade.overlap(this.mario,this.hammer))
+        {
+            this.hammerPowerUp();
+        }
         
         if(this.cursors.left.isDown){
                 this.mario.body.velocity.x = -gameOptions.heroSpeed;
                 this.mario.scale.x = 1;
-              //  if(!this.steps.isPlaying){
+            if(!this.poweredUp)this.mario.animations.play('run');
+            else this.mario.animations.play('hammerRun');
+            //  if(!this.steps.isPlaying){
                 //    this.steps.play();
                 //}
             }else
             if(this.cursors.right.isDown){
                 this.mario.body.velocity.x = gameOptions.heroSpeed;
                 this.mario.scale.x = -1;
+            if(!this.poweredUp)this.mario.animations.play('run');
+            else this.mario.animations.play('hammerRun');
 
             }else{
                 this.mario.body.velocity.x = 0;
+                if(this.poweredUp) this.mario.animations.play('hammerIdle');
+                else this.mario.frame = 0;
+                
               //  this.steps.stop();
             }
         
-        this.spawnFireAnim.onComplete.add(this.updateOilBarrel, this);
+        if(this.cursors.up.isDown && (this.mario.body.touching.down||this.mario.body.blocked.down)&&this.cursors.up.downDuration(1)){
+                this.mario.body.velocity.y = -gameOptions.heroJump;
+            }
         
+        if(this.poweredUp) this.powerCounter++;
+        if(this.powerCounter > 700){
+            this.poweredUp = false;
+            this.powerCounter = 0;
+        } 
+        
+        console.log(this.poweredUp)
+        this.bodySize();
         this.updateScore();
         this.updateLives();
         this.updatePrincess();
         this.updateDonkey();
+        //this.mario.frame = 18;
     },
     
     updateOilBarrel:function()
@@ -156,7 +194,6 @@ platformer.level1 ={
     
     checkDonkeyAction:function()
     {
-        console.log('Update');
         if(this.donkey.animations.currentAnim.frame == 5)
             {
                 if(this.donkey.animations.currentAnim.name == 'Horizontal_Normal') new platformer.barrel(this.game,this.donkey.position.x + this.donkey.width, 83, 'normalBarrel', 'roll', this);
@@ -172,7 +209,6 @@ platformer.level1 ={
            
     getDonkeyAnim:function()
     {
-        console.log('Completed');
         var randVal = this.game.rnd.integerInRange(1, 100);
         if(randVal > 0 && randVal <= 15) this.donkey.animations.play('Default');
         else if(randVal > 15 && randVal <= 40) this.donkey.animations.play('Vertical');
@@ -264,6 +300,17 @@ platformer.level1 ={
             }
         }*/
         
+    },
+    hammerPowerUp:function()
+    {
+                this.poweredUp = true;
+        this.hammer.body.position.x = 10000;
+    },
+    bodySize:function()
+    {
+      if(this.mario.frame == 17 && this.mario.body.blocked.down)this.mario.body.setSize(28,16, 3,10);
+      else if(this.mario.frame == 18 && this.mario.body.blocked.down)this.mario.body.setSize(28,16, 5,10);
+      else this.mario.body.setSize(13,16, 20,10);
     },
 }
 

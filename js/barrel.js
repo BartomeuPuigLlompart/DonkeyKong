@@ -21,7 +21,6 @@ platformer.barrel = function(_game,_x,_y,_sprite, _anim, _level){
     if(this.initial == 'fall')this.body.bounce.set(0.4);
     this.collided = 0;
     this.sumVal = 0;
-    console.log(_sprite+' created');
 };
 
 

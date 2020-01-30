@@ -16,7 +16,7 @@ platformer.game = new Phaser.Game(gameOptions.gameWidth,gameOptions.gameHeight,P
 platformer.game.state.add('level_1',platformer.level1);
 platformer.game.state.add('level_2',platformer.level2);
 
-platformer.game.state.start('level_2');
+platformer.game.state.start('level_1');
 
 
 
