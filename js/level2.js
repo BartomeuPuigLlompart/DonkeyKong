@@ -1,6 +1,6 @@
 var platformer = platformer || {};
 
-platformer.level1 ={
+platformer.level2 ={
     init:function(){
         this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         this.scale.setGameSize(gameOptions.gameWidth,gameOptions.gameHeight);
@@ -12,22 +12,17 @@ platformer.level1 ={
     },
     preload:function(){
         var ruta = 'assets/sprites/';
-        this.load.image('bg',ruta+'stage_1.png');
+        this.load.image('bg',ruta+'stage_2.png');
         this.load.image('patron',ruta+'Tile.png');
         
         this.load.spritesheet('Mario', ruta+'Mario.png', 31, 26);
         this.load.image('Lives', ruta+'lives.png');
-        this.load.image('barrelSource', ruta+'barrel_source.png');
-        this.load.spritesheet('oilBarrel', ruta+'oil_barrel.png', 24, 32);
-        this.load.spritesheet('normalBarrel', ruta+'normal_barrel.png', 24, 10);
-        this.load.spritesheet('blueBarrel', ruta+'blue_barrel.png', 24, 10);
-        this.load.spritesheet('flameEnemy', ruta+'enemy_flame.png', 16, 16);
         this.load.spritesheet('Donkey', ruta+'donkey_anims.png', 56, 40);
         this.load.spritesheet('Princess', ruta+'princess.png', 16, 25);
         this.load.spritesheet('HelpMsg', ruta+'help.png', 25, 8);
         this.load.spritesheet('Numbers', ruta+'game_numbers.png', 8, 8);
         
-        this.load.tilemap('Stage_1','assets/levels/Stage_1.json',null,Phaser.Tilemap.TILED_JSON);
+        this.load.tilemap('Stage_2','assets/levels/Stage_2.json',null,Phaser.Tilemap.TILED_JSON);
         
         this.cursors = this.game.input.keyboard.createCursorKeys();
         
@@ -36,7 +31,7 @@ platformer.level1 ={
     },
     create:function(){
         this.bg = this.game.add.tileSprite(0,0,gameOptions.gameWidth,gameOptions.gameHeight,'bg');
-        this.map = this.game.add.tilemap('Stage_1');
+        this.map = this.game.add.tilemap('Stage_2');
         this.map.addTilesetImage('patron');
         this.walls = this.map.createLayer('Walls');
         this.steps = this.map.createLayer('Steps');
@@ -44,28 +39,7 @@ platformer.level1 ={
         this.map.setCollisionBetween(1,1,true,'Steps');
         
         
-        
-        
-        this.donkey = this.game.add.sprite(16,44, 'Donkey', 0);
-        this.donkey.animations.add('Default', [0, 6, 7], 2, false);
-        this.donkey.animations.add('Horizontal_Normal', [0, 1, 2, 5], 2, false);
-        this.donkey.animations.add('Horizontal_Blue', [0, 1, 3, 5], 2, false);
-        this.donkey.animations.add('Vertical', [0, 1, 4], 2, false);
-        this.donkey.animations.play('Default');
-        this.donkey.animations.currentAnim.enableUpdate = true;
-        this.game.add.sprite(-1, 52, 'barrelSource');
-        this.oilBarrel = this.game.add.sprite(12,216, 'oilBarrel', 4);
-        this.oilBarrel.animations.add('halfFire', [0,1], 5, true);
-        this.spawnFireAnim = this.oilBarrel.animations.add('fullFire', [2, 3, 2,3,2,3,2,3,2,3], 5, false);
-        this.game.physics.arcade.enable(this.oilBarrel);
-        this.oilBarrel.body.immovable = true;
-        this.oilBarrel.body.allowGravity = false;
-        this.princess = this.game.add.sprite(88, 32, 'Princess', 0);
-        this.princess.animations.add('HELP',[1, 2, 3, 4],10,true);
-        this.princess.animations.play('HELP');
-        this.helpAnimCount = 0;
-        this.helpMsg = this.game.add.sprite(this.princess.x+this.princess.width+1, this.princess.y+1, 'HelpMsg', 0);
-        this.mario = this.game.add.sprite(50,230,'Mario',0)
+        this.mario = this.game.add.sprite(0,0,'Mario',0)
         this.mario.anchor.setTo(.5);
         this.game.physics.arcade.enable(this.mario);
         this.mario.body.setSize(13,16, 10,10);
@@ -77,6 +51,19 @@ platformer.level1 ={
         this.livesSprite[3] = this.game.add.sprite(8+24, 24, 'Lives');
         this.livesSprite[4] = this.game.add.sprite(8+32, 24, 'Lives');
         this.livesSprite[5] = this.game.add.sprite(8+40, 24, 'Lives');
+        
+        this.donkey = this.game.add.sprite(0,48, 'Donkey', 0);
+        this.donkey.animations.add('Default', [0, 6, 7], 2, true);
+        this.donkey.animations.play('Default');
+        this.donkey.anchor.setTo(.5, 0);
+        this.donkey.position.x = gameOptions.gameWidth / 2;
+        this.princess = this.game.add.sprite(88, 32-8, 'Princess', 0);
+        this.princess.anchor.setTo(.5, 0);
+        this.princess.position.x = gameOptions.gameWidth / 2;
+        this.princess.animations.add('HELP',[1, 2, 3, 4],10,true);
+        this.princess.animations.play('HELP');
+        this.helpAnimCount = 0;
+        this.helpMsg = this.game.add.sprite(this.princess.x+this.princess.width+1, this.princess.y+1, 'HelpMsg', 2);
         
         //music
         
@@ -90,10 +77,10 @@ platformer.level1 ={
         this.bonus = 0.5001;
         this.bonusRef = 0;
         this.bonusSprite = [];
-        this.bonusSprite[0] = this.game.add.sprite(176,48,'Numbers',parseInt(this.bonus.toString().charAt(2+0))-1+10*2);
-        this.bonusSprite[1] = this.game.add.sprite(176+8,48,'Numbers',parseInt(this.bonus.toString().charAt(2+1))+10*2);
-        this.bonusSprite[2] = this.game.add.sprite(176+16,48,'Numbers',parseInt(this.bonus.toString().charAt(2+2))+10*2);
-        this.bonusSprite[3] = this.game.add.sprite(176+24,48,'Numbers',parseInt(this.bonus.toString().charAt(2+3))+10*2);
+        this.bonusSprite[0] = this.game.add.sprite(176,48,'Numbers',parseInt(this.bonus.toString().charAt(2+0))-1+10*3);
+        this.bonusSprite[1] = this.game.add.sprite(176+8,48,'Numbers',parseInt(this.bonus.toString().charAt(2+1))+10*3);
+        this.bonusSprite[2] = this.game.add.sprite(176+16,48,'Numbers',parseInt(this.bonus.toString().charAt(2+2))+10*3);
+        this.bonusSprite[3] = this.game.add.sprite(176+24,48,'Numbers',parseInt(this.bonus.toString().charAt(2+3))+10*3);
         this.score = 0.000001;
         this.scoreSprite = [];
         this.scoreSprite[0] = this.game.add.sprite(8,8,'Numbers',parseInt(this.score.toString().charAt(2+0))-1);
@@ -111,8 +98,6 @@ platformer.level1 ={
         this.highScoreSprite[4] = this.game.add.sprite(88+32,8,'Numbers',parseInt(this.highScore.toString().charAt(2+4)));
         this.highScoreSprite[5] = this.game.add.sprite(88+40,8,'Numbers',parseInt(this.highScore.toString().charAt(2+5)));
         
-        //Hardcoded stuff
-        this.mario.position.setTo(0,0);
     },
     update:function(){        
         this.game.physics.arcade.collide(this.mario,this.walls);
@@ -133,57 +118,26 @@ platformer.level1 ={
               //  this.steps.stop();
             }
         
-        this.spawnFireAnim.onComplete.add(this.updateOilBarrel, this);
-        
         this.updateScore();
         this.updateLives();
         this.updatePrincess();
-        this.updateDonkey();
-    },
-    
-    updateOilBarrel:function()
-    {
-        this.oilBarrel.animations.play('halfFire');
-        new platformer.fireEnemy(this.game,this.oilBarrel.position.x+this.oilBarrel.width, this.oilBarrel.position.y+this.oilBarrel.height, 0, this);
-    },
-    
-    updateDonkey:function()
-    {
-        this.donkey.animations.currentAnim.speed = 7-this.bonusSprite[0].frame;
-        this.donkey.animations.currentAnim.onUpdate.add(this.checkDonkeyAction, this);
-        this.donkey.animations.currentAnim.onComplete.add(this.getDonkeyAnim, this);
-    },
-    
-    checkDonkeyAction:function()
-    {
-        console.log('Update');
-        if(this.donkey.animations.currentAnim.frame == 5)
-            {
-                if(this.donkey.animations.currentAnim.name == 'Horizontal_Normal') new platformer.barrel(this.game,this.donkey.position.x + this.donkey.width, 83, 'normalBarrel', 'roll', this);
-                else new platformer.barrel(this.game,this.donkey.position.x + this.donkey.width, 83, 'blueBarrel', 'roll', this);
-            }
-        if(this.donkey.animations.currentAnim.frame == 4)
-            {
-                var randVal = this.game.rnd.integerInRange(1, 10);
-                if(randVal >  3) new platformer.barrel(this.game,this.donkey.position.x + this.donkey.width / 2, 83, 'normalBarrel', 'fall', this);
-                else new platformer.barrel(this.game,this.donkey.position.x + this.donkey.width / 2, 83, 'blueBarrel', 'fall', this);
-            }
-    },
-           
-    getDonkeyAnim:function()
-    {
-        console.log('Completed');
-        var randVal = this.game.rnd.integerInRange(1, 100);
-        if(randVal > 0 && randVal <= 15) this.donkey.animations.play('Default');
-        else if(randVal > 15 && randVal <= 40) this.donkey.animations.play('Vertical');
-        else if(randVal > 40 && randVal <= 90) this.donkey.animations.play('Horizontal_Normal');
-        else this.donkey.animations.play('Horizontal_Blue');
-        this.donkey.animations.currentAnim.enableUpdate = true;this.donkey.animations.currentAnim.enableUpdate = true;
     },
     
     updatePrincess:function()
     {
         this.helpAnimCount++;
+        if(this.mario.position.x > this.princess.position.x)
+        {
+            this.princess.scale.x = 1;
+            this.helpMsg.position.x = this.princess.x+this.princess.width - this.princess.offsetX+1;
+            this.helpMsg.frame = 2;
+        }
+        else
+        {
+            this.princess.scale.x = -1;
+            this.helpMsg.position.x = this.princess.x-this.helpMsg.width+this.princess.offsetX-1;
+            this.helpMsg.frame = 1;
+        }
         if(this.helpAnimCount > 60 && this.princess.frame != 0)
             {
                 this.helpAnimCount = 0;
@@ -208,9 +162,10 @@ platformer.level1 ={
                 this.bonus -= 0.0100;
                 this.bonus = this.bonus.toFixed(4);
             }
-        this.bonusSprite[this.bonusSprite.length-1].frame = parseInt(this.bonus.toString().charAt(2+this.bonusSprite.length-1))-1+10*2;
+        console.log(this.bonus);
+        this.bonusSprite[this.bonusSprite.length-1].frame = parseInt(this.bonus.toString().charAt(2+this.bonusSprite.length-1))-1+10*3;
         for(var i = 0; i < this.bonusSprite.length-1; i++){
-        this.bonusSprite[i].frame = parseInt(this.bonus.toString().charAt(2+i))+10*2;
+        this.bonusSprite[i].frame = parseInt(this.bonus.toString().charAt(2+i))+10*3;
         }
         this.scoreSprite[this.scoreSprite.length-1].frame = parseInt(this.score.toString().charAt(2+this.scoreSprite.length-1))-1;
         this.highScoreSprite[this.scoreSprite.length-1].frame = parseInt(this.highScore.toString().charAt(2+this.scoreSprite.length-1))-1;
@@ -232,7 +187,7 @@ platformer.level1 ={
     render:function()
     {
         this.game.debug.body(this.mario);
-        if(this.flame != null)this.game.debug.body(this.flame);
+        //this.game.debug.body(this.boss);
         //this.game.debug.body(this.propTops[0]);
         //this.game.debug.body(this.silverWatchers[0]);
     },
