@@ -11,8 +11,7 @@ platformer.fireEnemy = function(_game,_x,_y,_sumAnimVal, _level){
     this.animations.play('Normal');
     _game.physics.arcade.enable(this);
     this.body.setSize(this.body.width - 6, this.body.height-6, this.body.offset.x+5, this.body.offset.y+3);
-    this.checkWorldBounds = true;
-    this.outOfBoundsKill = true;
+   
     this.sumVal = 0;
     this.goUp = false;
     this.goDown = false;

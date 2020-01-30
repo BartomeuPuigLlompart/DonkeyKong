@@ -17,10 +17,13 @@ platformer.level2 ={
         
         this.load.spritesheet('Mario', ruta+'Mario.png', 31, 26);
         this.load.image('Lives', ruta+'lives.png');
+        this.load.image('button', ruta+'button.png');
+        this.load.spritesheet('flameEnemy', ruta+'enemy_flame.png', 16, 16);
         this.load.spritesheet('Donkey', ruta+'donkey_anims.png', 56, 40);
         this.load.spritesheet('Princess', ruta+'princess.png', 16, 25);
         this.load.spritesheet('HelpMsg', ruta+'help.png', 25, 8);
         this.load.spritesheet('Numbers', ruta+'game_numbers.png', 8, 8);
+        this.load.spritesheet('scoreText', ruta+'gained_score.png', 15, 7);
         
         this.load.tilemap('Stage_2','assets/levels/Stage_2.json',null,Phaser.Tilemap.TILED_JSON);
         
@@ -39,18 +42,7 @@ platformer.level2 ={
         this.map.setCollisionBetween(1,1,true,'Steps');
         
         
-        this.mario = this.game.add.sprite(0,0,'Mario',0)
-        this.mario.anchor.setTo(.5);
-        this.game.physics.arcade.enable(this.mario);
-        this.mario.body.setSize(13,16, 10,10);
-        this.lives = 5;
-        this.livesSprite = [];
-        this.livesSprite[0] = this.game.add.sprite(8, 24, 'Lives');
-        this.livesSprite[1] = this.game.add.sprite(8+8, 24, 'Lives');
-        this.livesSprite[2] = this.game.add.sprite(8+16, 24, 'Lives');
-        this.livesSprite[3] = this.game.add.sprite(8+24, 24, 'Lives');
-        this.livesSprite[4] = this.game.add.sprite(8+32, 24, 'Lives');
-        this.livesSprite[5] = this.game.add.sprite(8+40, 24, 'Lives');
+        
         
         this.donkey = this.game.add.sprite(0,48, 'Donkey', 0);
         this.donkey.animations.add('Default', [0, 6, 7], 2, true);
@@ -64,6 +56,39 @@ platformer.level2 ={
         this.princess.animations.play('HELP');
         this.helpAnimCount = 0;
         this.helpMsg = this.game.add.sprite(this.princess.x+this.princess.width+1, this.princess.y+1, 'HelpMsg', 2);
+        this.mario = this.game.add.sprite(50,230,'Mario',0)
+        this.mario.anchor.setTo(.5);
+        this.game.physics.arcade.enable(this.mario);
+        this.mario.body.setSize(13,16, 10,10);
+        this.lives = 5;
+        this.livesSprite = [];
+        this.livesSprite[0] = this.game.add.sprite(8, 24, 'Lives');
+        this.livesSprite[1] = this.game.add.sprite(8+8, 24, 'Lives');
+        this.livesSprite[2] = this.game.add.sprite(8+16, 24, 'Lives');
+        this.livesSprite[3] = this.game.add.sprite(8+24, 24, 'Lives');
+        this.livesSprite[4] = this.game.add.sprite(8+32, 24, 'Lives');
+        this.livesSprite[5] = this.game.add.sprite(8+40, 24, 'Lives');
+        
+        //Buttons
+        this.buttons = [];
+        this.buttons[0] = this.game.add.sprite(7*8, 95-8, 'button');
+        this.buttons[1] = this.game.add.sprite(20*8, 95-8, 'button');
+        
+        this.buttons[2] = this.game.add.sprite(7*8, 135-8, 'button');
+        this.buttons[3] = this.game.add.sprite(20*8, 135-8, 'button');
+        
+        this.buttons[4] = this.game.add.sprite(7*8, 175-8, 'button');
+        this.buttons[5] = this.game.add.sprite(20*8, 175-8, 'button');
+        
+        this.buttons[6] = this.game.add.sprite(7*8, 215-8, 'button');
+        this.buttons[7] = this.game.add.sprite(20*8, 215-8, 'button');
+        
+        for(var i = 0; i < this.buttons.length; i++)
+            {
+                this.game.physics.arcade.enable(this.buttons[i]);
+                this.buttons[i].body.immovable = true;
+                this.buttons[i].body.allowGravity = false;
+            }
         
         //music
         
@@ -98,6 +123,20 @@ platformer.level2 ={
         this.highScoreSprite[4] = this.game.add.sprite(88+32,8,'Numbers',parseInt(this.highScore.toString().charAt(2+4)));
         this.highScoreSprite[5] = this.game.add.sprite(88+40,8,'Numbers',parseInt(this.highScore.toString().charAt(2+5)));
         
+        //Enemies
+        this.enemyCounter = 0;
+        this.enemySpawns = [];
+        this.enemySpawns[0] = new Phaser.Point(0*8, 255-4);
+        this.enemySpawns[1] = new Phaser.Point(27*8, 255-4);
+        
+        this.enemySpawns[2] = new Phaser.Point(1*8, 215-4);
+        this.enemySpawns[3] = new Phaser.Point(26*8, 215-4);
+        
+        this.enemySpawns[4] = new Phaser.Point(2*8, 175-4);
+        this.enemySpawns[5] = new Phaser.Point(25*8, 175-4);
+        
+        //Hardcoded stuff
+        this.mario.position.setTo(40,0);
     },
     update:function(){        
         this.game.physics.arcade.collide(this.mario,this.walls);
@@ -108,19 +147,41 @@ platformer.level2 ={
               //  if(!this.steps.isPlaying){
                 //    this.steps.play();
                 //}
-            }else
-            if(this.cursors.right.isDown){
+            }
+        else if(this.cursors.right.isDown){
                 this.mario.body.velocity.x = gameOptions.heroSpeed;
                 this.mario.scale.x = -1;
 
-            }else{
+            }
+        else{
                 this.mario.body.velocity.x = 0;
               //  this.steps.stop();
             }
-        
+        this.updateSpawns();
+        this.updateButtons();
         this.updateScore();
         this.updateLives();
         this.updatePrincess();
+    },
+    
+    updateSpawns:function()
+    {
+        var randVal = this.game.rnd.integerInRange(0, 1500);
+        if(randVal < this.enemySpawns.length && this.enemyCounter < this.enemySpawns.length){
+            new platformer.fireEnemy(this.game,this.enemySpawns[randVal].x, this.enemySpawns[randVal].y, 4, this);
+            this.enemyCounter++;
+        }
+    },
+    
+    updateButtons:function()
+    {
+        for(var i = 0; i < this.buttons.length; i++)
+            {
+                if(this.game.physics.arcade.collide(this.mario,this.buttons[i])) {
+                    new platformer.scoreText(this.game, this.buttons[i].position.x, this.buttons[i].position.y, 0, this);
+                    this.buttons[i].kill();
+                }
+            }
     },
     
     updatePrincess:function()
