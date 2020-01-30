@@ -18,8 +18,8 @@ platformer.barrel = function(_game,_x,_y,_sprite, _anim, _level){
     this.body.setSize(this.body.width - 12, this.body.height, this.body.offset.x+5, this.body.offset.y);
     this.checkWorldBounds = true;
     this.outOfBoundsKill = true;
-    if(this.initial == 'fall')this.body.bounce.set(0.8);
-    this.collided = true;
+    if(this.initial == 'fall')this.body.bounce.set(0.4);
+    this.collided = 0;
     console.log(_sprite+' created');
 };
 
@@ -34,26 +34,53 @@ platformer.barrel.prototype.update = function(){
                 this.directionX = 1;
             else this.directionX = -1;
             this.scale.x = this.directionX*-1;
+            if(this.level.map.getTileWorldXY(this.position.x, this.position.y+this.height, 8, 1, 'Steps') != null && this.game.rnd.integerInRange(1, 20) == 3)
+                this.animations.play('fall');
+            else
+            {
+                this.body.velocity.x = this.speed*this.directionX;
+                this.level.game.physics.arcade.collide(this,this.level.walls);
+            }
         }
     else
     {
-        console.log('blocked '+this.body.onFloor().toString());
-        console.log('collided '+this.collided.toString());
-        console.log('enabled '+this.body.onFloor().toString());
+        if(this.initial == 'fall')
+            {
+                switch(this.collided)
+                    {
+                        case 0:
+                            if(this.position.y > 102 && this.level.game.physics.arcade.collide(this,this.level.walls))
+                                this.collided++;
+                            break;
+                        case 1:
+                            if(this.position.y > 135 && this.level.game.physics.arcade.collide(this,this.level.walls))
+                                this.collided++;
+                            break;
+                        case 2:
+                            if(this.position.y > 168 && this.level.game.physics.arcade.collide(this,this.level.walls))
+                                this.collided++;
+                            break;
+                        case 3:
+                            if(this.position.y > 201 && this.level.game.physics.arcade.collide(this,this.level.walls))
+                                this.collided++;
+                            break;
+                        case 4:
+                            if(this.position.y > 234 && this.level.game.physics.arcade.collide(this,this.level.walls))
+                                {
+                                  this.animations.play('roll');
+                                    this.initial = 'roll';
+                                }
+                            break;
+                    }
+                var sumVal = (this.level.mario.position.x - this.position.x) * 0.033;
+                if(sumVal > 0.5) sumVal = 0.5;
+                this.body.position.x += sumVal;
+            }
+        else if(this.level.map.getTileWorldXY(this.position.x, this.position.y+this.height, 8, 1, 'Steps') == null)
+            this.animations.play('roll');
         this.directionX = 0;
         this.scale.x = 1;
-        if(this.body.onFloor() == true && this.collided == false){
-            this.body.position.x += this.level.mario.position.x * 0.033;
-        }
-        else if(this.body.onFloor() == false && this.collided == true) {
-            this.body.enable = false;
-            this.collided = false;
-        }
         this.body.velocity.y -=10;
-    }
-    this.body.velocity.x = this.speed*this.directionX;
-    if(this.collided == false || this.initial == 'roll'){
-        if(this.level.game.physics.arcade.collide(this,this.level.walls))
-        this.collided = true;
+        this.body.velocity.x = 0;
     }
 };
