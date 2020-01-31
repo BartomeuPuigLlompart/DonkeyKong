@@ -1,7 +1,7 @@
 var platformer = platformer || {};
 
 platformer.level1 ={
-    init:function(_highScore){
+    init:function(_score, _highScore, _lives, _bonus){
         this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         this.scale.setGameSize(gameOptions.gameWidth,gameOptions.gameHeight);
         this.scale.pageAlignHorizontally = true;
@@ -11,7 +11,14 @@ platformer.level1 ={
         
         if(_highScore != null) this.highScore = _highScore;
         else this.highScore = 0.000001;
-        
+        if(_lives != null) this.lives = _lives;
+        else this.lives = 5;
+        this.score = 0.000001;
+        if(_score != null)this.score = _score;
+        else this.bonus = 0.5001;
+        this.bonus = 0.000001;
+        if(_bonus != null)this.bonus = _bonus;
+        else this.bonus = 0.5001;
     },
     
     preload:function(){
@@ -39,6 +46,11 @@ platformer.level1 ={
         this.cursors = this.game.input.keyboard.createCursorKeys();
         
         var ruta = 'assets/sounds/';
+        this.load.audio('walking',ruta+'walking.wav');
+        this.load.audio('backMusic',ruta+'bacmusic.wav');
+        this.load.audio('hammer',ruta+'07 Hammer.mp3');
+        this.load.audio('bonus',ruta+'bonus.mp3');
+        this.load.audio('kill',ruta+'kill.wav');
         
     },
     create:function(){
@@ -93,11 +105,11 @@ platformer.level1 ={
         this.mario.animations.add('run',[1,2],15,true);
         this.mario.animations.add('hammerIdle', [16,17], 10, true);
         this.mario.animations.add('hammerRun', [18,19], 10, true);
-        this.mario.animations.add('death', [13,14, 15], 5, false);
+        this.death = this.mario.animations.add('death', [13,14, 15], 5, false);
         
         this.enemyCounter = 0;
         
-        this.lives = 5;
+        //this.lives = 5;
         this.livesSprite = [];
         this.livesSprite[0] = this.game.add.sprite(8, 24, 'Lives');
         this.livesSprite[1] = this.game.add.sprite(8+8, 24, 'Lives');
@@ -107,6 +119,12 @@ platformer.level1 ={
         this.livesSprite[5] = this.game.add.sprite(8+40, 24, 'Lives');
         
         //music
+        this.walking_a = this.game.add.audio('walking');
+        this.hammer_a = this.game.add.audio('hammer', 1, true);
+        this.backMusic = this.game.add.audio('backMusic', 1, true);
+        if(!this.backMusic.isPlaying)this.backMusic.play();
+        
+        
         
         this.space = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         
@@ -114,14 +132,14 @@ platformer.level1 ={
         
         
         //Score
-        this.bonus = 0.5001;
+        
         this.bonusRef = 0;
         this.bonusSprite = [];
         this.bonusSprite[0] = this.game.add.sprite(176,48,'Numbers',parseInt(this.bonus.toString().charAt(2+0))-1+10*2);
         this.bonusSprite[1] = this.game.add.sprite(176+8,48,'Numbers',parseInt(this.bonus.toString().charAt(2+1))+10*2);
         this.bonusSprite[2] = this.game.add.sprite(176+16,48,'Numbers',parseInt(this.bonus.toString().charAt(2+2))+10*2);
         this.bonusSprite[3] = this.game.add.sprite(176+24,48,'Numbers',parseInt(this.bonus.toString().charAt(2+3))+10*2);
-        this.score = 0.000001;
+        //this.score = 0.000001;
         this.scoreSprite = [];
         this.scoreSprite[0] = this.game.add.sprite(8,8,'Numbers',parseInt(this.score.toString().charAt(2+0))-1);
         this.scoreSprite[1] = this.game.add.sprite(8+8,8,'Numbers',parseInt(this.score.toString().charAt(2+1)));
@@ -155,6 +173,7 @@ platformer.level1 ={
         
         if(this.mario.body.allowGravity){
         if(this.cursors.left.isDown){
+            if(!this.walking_a.isPlaying)this.walking_a.play();
                 this.mario.body.velocity.x = -gameOptions.heroSpeed;
                 this.mario.scale.x = 1;
             if(this.mario.body.blocked.left) this.mario.position.y -= 0.5;
@@ -165,6 +184,7 @@ platformer.level1 ={
                 //}
             }else
             if(this.cursors.right.isDown){
+                if(!this.walking_a.isPlaying)this.walking_a.play();
                 this.mario.body.velocity.x = gameOptions.heroSpeed;
                 this.mario.scale.x = -1;
                 if(this.mario.body.blocked.right) this.mario.position.y -= 0.5;
@@ -172,6 +192,7 @@ platformer.level1 ={
             else this.mario.animations.play('hammerRun');
 
             }else{
+                if(this.walking_a.isPlaying)this.walking_a.stop();
                 this.mario.body.velocity.x = 0;
                 if(this.poweredUp) this.mario.animations.play('hammerIdle');
                 else this.mario.frame = 0;
@@ -180,7 +201,7 @@ platformer.level1 ={
             }
             if(this.mario.position.y < 60){
                 if(!isNaN(this.score + this.bonus / 100))this.score += this.bonus / 100;
-                this.game.state.start('level_2', true, false, this.score, this.highScore, this.lives);
+                this.game.state.start('level_2', true, false, this.score, this.highScore, this.lives, 0.5001);
             }
         }
         if(this.cursors.up.isDown && (this.mario.body.touching.down||this.mario.body.blocked.down)&& (this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y, 8, 1, 'Steps') == null || this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y, 8, 1, 'Broken') != null) &&this.cursors.up.downDuration(1)){
@@ -189,6 +210,7 @@ platformer.level1 ={
             }
         else if(this.cursors.up.isDown && this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +10, 8, 1, 'Steps') != null && this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +10, 8, 1, 'Broken') == null && !this.poweredUp)
             {
+                if(!this.walking_a.isPlaying)this.walking_a.play();
                 this.mario.animations.stop();
                 this.mario.frame = 3;
                 if(Math.floor(this.mario.position.y) % 4 == 0)this.mario.scale.x = -1;
@@ -201,6 +223,7 @@ platformer.level1 ={
             }
         else if(this.cursors.down.isDown && (this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +20, 8, 1, 'Steps') != null || this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +14, 8, 1, 'Steps') != null) && (this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +20, 8, 1, 'Broken') == null || this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +14, 8, 1, 'Broken') == null) && (!this.mario.body.touching.down||!this.mario.body.blocked.down) && !this.poweredUp)
             {
+                if(!this.walking_a.isPlaying)this.walking_a.play();
                 this.mario.animations.stop();
                 this.mario.frame = 3;
                 if(Math.floor(this.mario.position.y) % 4 == 0)this.mario.scale.x = 1;
@@ -213,11 +236,15 @@ platformer.level1 ={
                 if(this.cursors.down.isDown) this.mario.position.y +=0.5;
             }
         else if((this.cursors.up.isDown && this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +10, 8, 1, 'Steps') == null) || (this.cursors.down.isDown && this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +14, 8, 1, 'Steps') == null)) this.mario.body.allowGravity = true;
+        else if(!this.cursors.up.isDown && !this.cursors.down.isDown && !this.cursors.left.isDown && !this.cursors.right.isDown) {
+            if(this.walking_a.isPlaying)this.walking_a.stop();
+        }
         
         if(this.poweredUp) this.powerCounter++;
         if(this.powerCounter > 700){
             this.poweredUp = false;
             this.powerCounter = 0;
+            this.hammer_a.stop();
         } 
         
          this.spawnFireAnim.onComplete.add(this.updateOilBarrel, this);
@@ -228,6 +255,7 @@ platformer.level1 ={
         this.updatePrincess();
         this.updateDonkey();
         //this.mario.frame = 18;
+        this.death.onComplete.add(this.resetMario, this);
     },
     
     updateOilBarrel:function()
@@ -326,7 +354,8 @@ platformer.level1 ={
     
     hammerPowerUp:function()
     {
-                this.poweredUp = true;
+        this.poweredUp = true;
+        this.hammer_a.play();
         
     },
     bodySize:function()
@@ -334,6 +363,16 @@ platformer.level1 ={
       if(this.mario.frame == 17 && this.mario.body.blocked.down)this.mario.body.setSize(28,16, 3,10);
       else if(this.mario.frame == 18 && this.mario.body.blocked.down)this.mario.body.setSize(28,16, 5,10);
       else this.mario.body.setSize(8,14, 23,11);
+    },
+    resetMario:function()
+    {
+        this.backMusic.stop();
+        this.lives--;
+        console.log(this.lives);
+        if(this.lives > 0)
+        this.game.state.start('level_1', true, false, this.score, this.highScore, this.lives, this.bonus);
+        else this.game.state.start('level_1', true, false, 0.000001, this.highScore, 5, 0.5001);
+        
     },
 }
 

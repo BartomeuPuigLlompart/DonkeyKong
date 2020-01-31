@@ -29,6 +29,7 @@ platformer.fireEnemy.prototype = Object.create(Phaser.Sprite.prototype);
 platformer.fireEnemy.prototype.constructor = platformer.fireEnemy;
 
 platformer.fireEnemy.prototype.update = function(){
+    if(this.level.game.physics.arcade.overlap(this,this.level.mario) && !this.level.poweredUp) this.level.mario.animations.play('death');
     this.randomMoveCounter++;
     if(this.randomMoveCounter > this.randomMoveRef)
         {

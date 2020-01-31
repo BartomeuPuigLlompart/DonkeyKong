@@ -6,7 +6,7 @@ platformer.bubbleEffect = function(_game,_x,_y, _frameScore, _level){
     this.anchor.setTo(.5);
     this.score = _frameScore;
     this.level = _level;
-    
+    _level.game.add.audio('kill').play();
     this.animations.add('effect', [0,1,2,3,4,5],5, false);
     this.animations.play('effect');
     this.animations.currentAnim.onComplete.add(this.setScore, _level, _frameScore,  this, this.level);
