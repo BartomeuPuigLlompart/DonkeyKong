@@ -30,6 +30,11 @@ platformer.barrel.prototype.constructor = platformer.barrel;
 platformer.barrel.prototype.update = function(){
     if(this.animations.currentAnim.name == 'roll')
         {
+            if(this.level.game.physics.arcade.overlap(this,this.level.mario) && this.level.poweredUp && this.level.mario.scale.x != this.scale.x)
+        {
+            new platformer.bubbleEffect(this.game, this.position.x, this.position.y, this);
+            this.kill();
+        }
             if(this.position.y < 88 || (this.position.y < 154 && this.position.y > 128) || (this.position.y < 220 && this.position.y > 194))
                 this.directionX = 1;
             else this.directionX = -1;
@@ -49,6 +54,11 @@ platformer.barrel.prototype.update = function(){
         }
     else
     {
+        if(this.level.game.physics.arcade.overlap(this,this.level.mario) && this.level.poweredUp)
+        {
+            new platformer.bubbleEffect(this.game, this.position.x, this.position.y, this);
+            this.kill();
+        }
         if(this.initial == 'fall')
             {
                 switch(this.collided)
