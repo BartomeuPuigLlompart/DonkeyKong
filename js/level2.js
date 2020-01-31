@@ -34,6 +34,7 @@ platformer.level2 ={
         this.load.spritesheet('HelpMsg', ruta+'help.png', 25, 8);
         this.load.spritesheet('Numbers', ruta+'game_numbers.png', 8, 8);
         this.load.spritesheet('scoreText', ruta+'gained_score.png', 15, 7);
+        this.load.spritesheet('item', ruta+'items.png', 16, 15);
         
         this.load.tilemap('Stage_2','assets/levels/Stage_2.json',null,Phaser.Tilemap.TILED_JSON);
         
@@ -45,6 +46,7 @@ platformer.level2 ={
         this.load.audio('hammer',ruta+'07 Hammer.mp3');
         this.load.audio('bonus',ruta+'bonus.mp3');
         this.load.audio('kill',ruta+'kill.wav');
+        this.load.audio('death',ruta+'death.mp3');
     },
     create:function(){
         this.poweredUp = false;
@@ -89,7 +91,7 @@ platformer.level2 ={
         this.mario.animations.add('run',[1,2],15,true);
         this.mario.animations.add('hammerIdle', [16,17], 10, true);
         this.mario.animations.add('hammerRun', [18,19], 10, true);
-        this.mario.animations.add('death', [13,14, 15], 5, false);
+        this.death = this.mario.animations.add('death', [13,14, 15], 5, false);
         //this.lives = 5;
         this.livesSprite = [];
         this.livesSprite[0] = this.game.add.sprite(8, 24, 'Lives');
@@ -122,8 +124,23 @@ platformer.level2 ={
         
         this.disabledButtons = 0
         
+        //Items
+        this.item_0 = this.game.add.sprite(4*8, 86-12, 'item', 0);
+        this.game.physics.arcade.enable(this.item_0);
+        this.item_0.body.immovable = true;
+        this.item_0.body.allowGravity = false;
+        this.item_1 = this.game.add.sprite(16*8, 250-16, 'item', 1);
+        this.game.physics.arcade.enable(this.item_1);
+        this.item_1.body.immovable = true;
+        this.item_1.body.allowGravity = false;
+        this.item_2 = this.game.add.sprite(24*8, 164-10, 'item', 2);
+        this.game.physics.arcade.enable(this.item_2);
+        this.item_2.body.immovable = true;
+        this.item_2.body.allowGravity = false;
+        
         //music
         this.walking_a = this.game.add.audio('walking');
+        this.death_a = this.game.add.audio('death', 1.5);
         this.hammer_a = this.game.add.audio('hammer', 1, true);
         this.backMusic = this.game.add.audio('backMusic', 1, true);
         if(!this.backMusic.isPlaying)this.backMusic.play()
@@ -174,7 +191,11 @@ platformer.level2 ={
         //Hardcoded stuff
        // this.mario.position.setTo(40,0);
     },
-    update:function(){        
+    update:function(){ 
+        if(this.death.isPlaying) {
+            if(!this.death_a.isPlaying) this.death_a.play();
+            return;
+        }
         this.game.physics.arcade.collide(this.mario,this.walls);
         if(this.game.physics.arcade.overlap(this.mario,this.hammer))
         {
@@ -252,15 +273,33 @@ platformer.level2 ={
         
         if(this.poweredUp) this.powerCounter++;
         if(this.powerCounter > 700){
+            this.hammer_a.stop();
             this.poweredUp = false;
             this.powerCounter = 0;
         } 
+        
+        //Buttons
+        if(this.game.physics.arcade.collide(this.mario,this.item_0)) {
+                    new platformer.scoreText(this.game, this.item_0.position.x, this.item_0.position.y, 2, this);
+                    this.item_0.kill();
+                }
+        else if(this.game.physics.arcade.collide(this.mario,this.item_1)) {
+                    new platformer.scoreText(this.game, this.item_1.position.x, this.item_1.position.y, 2, this);
+                    this.item_1.kill();
+                }
+        else if(this.game.physics.arcade.collide(this.mario,this.item_2)) {
+                    new platformer.scoreText(this.game, this.item_2.position.x, this.item_2.position.y, 2, this);
+                    this.item_2.kill();
+                }
+        
         this.bodySize();
         this.updateSpawns();
         this.updateButtons();
         this.updateScore();
         this.updateLives();
         this.updatePrincess();
+        
+        this.death.onComplete.add(this.resetMario, this);
     },
     
     updateSpawns:function()
@@ -280,7 +319,6 @@ platformer.level2 ={
                     new platformer.scoreText(this.game, this.buttons[i].position.x, this.buttons[i].position.y+5+this.buttons[i].height, 0, this);
                     this.buttons[i].kill();
                     this.disabledButtons++;
-                    this.game.add.audio('bonus').play();
                 }
             }
         if(this.disabledButtons >= 8) {
@@ -288,6 +326,7 @@ platformer.level2 ={
             if(this.score > this.highScore)this.highScore = this.score;
             if(this.lives < 6)this.lives++;
             this.game.state.start('level_1', true, false, 0.000001, this.highScore, this.lives, 0.5001);
+            this.backMusic.stop();
         }
     },
     
@@ -362,6 +401,7 @@ platformer.level2 ={
     hammerPowerUp:function()
     {
                 this.poweredUp = true;
+        this.hammer_a.play();
         
     },
     bodySize:function()
@@ -369,6 +409,16 @@ platformer.level2 ={
       if(this.mario.frame == 17 && this.mario.body.blocked.down)this.mario.body.setSize(28,16, 3,10);
       else if(this.mario.frame == 18 && this.mario.body.blocked.down)this.mario.body.setSize(28,16, 5,10);
       else this.mario.body.setSize(8,14, 23,11);
+    },
+    resetMario:function()
+    {
+        this.backMusic.stop();
+        this.lives--;
+        console.log(this.lives);
+        if(this.lives > 0)
+        this.game.state.start('level_2', true, false, this.score, this.highScore, this.lives, this.bonus);
+        else this.game.state.start('level_2', true, false, 0.000001, this.highScore, 5, 0.5001);
+        
     },
 }
 

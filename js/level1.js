@@ -51,6 +51,7 @@ platformer.level1 ={
         this.load.audio('hammer',ruta+'07 Hammer.mp3');
         this.load.audio('bonus',ruta+'bonus.mp3');
         this.load.audio('kill',ruta+'kill.wav');
+        this.load.audio('death',ruta+'death.mp3');
         
     },
     create:function(){
@@ -120,6 +121,7 @@ platformer.level1 ={
         
         //music
         this.walking_a = this.game.add.audio('walking');
+        this.death_a = this.game.add.audio('death', 1.5);
         this.hammer_a = this.game.add.audio('hammer', 1, true);
         this.backMusic = this.game.add.audio('backMusic', 1, true);
         if(!this.backMusic.isPlaying)this.backMusic.play();
@@ -158,7 +160,11 @@ platformer.level1 ={
         //Hardcoded stuff
         //this.mario.position.setTo(0,0);
     },
-    update:function(){        
+    update:function(){   
+        if(this.death.isPlaying) {
+            if(!this.death_a.isPlaying) this.death_a.play();
+            return;
+        }
         this.game.physics.arcade.collide(this.mario,this.walls);
         if(this.game.physics.arcade.overlap(this.mario,this.hammer))
         {
@@ -202,6 +208,7 @@ platformer.level1 ={
             if(this.mario.position.y < 60){
                 if(!isNaN(this.score + this.bonus / 100))this.score += this.bonus / 100;
                 this.game.state.start('level_2', true, false, this.score, this.highScore, this.lives, 0.5001);
+                this.backMusic.stop();
             }
         }
         if(this.cursors.up.isDown && (this.mario.body.touching.down||this.mario.body.blocked.down)&& (this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y, 8, 1, 'Steps') == null || this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y, 8, 1, 'Broken') != null) &&this.cursors.up.downDuration(1)){

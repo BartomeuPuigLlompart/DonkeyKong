@@ -7,7 +7,7 @@ var gameOptions={
     level1Height:256,
     heroGravity:800,
     heroSpeed:30,
-    heroJump:70,
+    heroJump:80,
     bulletSpeed:300
 }
 

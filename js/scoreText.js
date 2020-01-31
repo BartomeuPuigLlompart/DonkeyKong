@@ -25,6 +25,8 @@ platformer.scoreText = function(_game,_x,_y, _frame, _level){
             break;
     }
     
+    this.game.add.audio('bonus').play();
+    
 };
 
 

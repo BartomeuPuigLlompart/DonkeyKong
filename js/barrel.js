@@ -34,7 +34,6 @@ platformer.barrel.prototype.update = function(){
         {
             if(!this.jumped && this.level.mario.position.y < this.position.y && Math.abs(this.level.mario.position.y - this.position.y) < 30 && Math.abs(this.level.mario.position.x - this.position.x) < 5 && !this.level.poweredUp && this.level.mario.frame != 3)
                 {
-                    this.game.add.audio('bonus').play();
                     this.jumped = true;
                     new platformer.scoreText(this.level.game, this.position.x, this.position.y, 0, this.level);
                 }
