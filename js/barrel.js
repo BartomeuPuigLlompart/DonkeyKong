@@ -21,6 +21,7 @@ platformer.barrel = function(_game,_x,_y,_sprite, _anim, _level){
     if(this.initial == 'fall')this.body.bounce.set(0.4);
     this.collided = 0;
     this.sumVal = 0;
+    this.jumped = false;
 };
 
 
@@ -30,9 +31,17 @@ platformer.barrel.prototype.constructor = platformer.barrel;
 platformer.barrel.prototype.update = function(){
     if(this.animations.currentAnim.name == 'roll')
         {
-            if(this.level.game.physics.arcade.overlap(this,this.level.mario) && this.level.poweredUp && this.level.mario.scale.x != this.scale.x)
+            if(!this.jumped && this.level.mario.position.y < this.position.y && Math.abs(this.level.mario.position.y - this.position.y) < 30 && Math.abs(this.level.mario.position.x - this.position.x) < 5 && !this.level.poweredUp && this.level.mario.frame != 3)
+                {
+                    this.jumped = true;
+                    new platformer.scoreText(this.level.game, this.position.x, this.position.y, 0, this.level);
+                }
+            else if(this.level.game.physics.arcade.overlap(this,this.level.mario) && this.level.poweredUp && this.level.mario.scale.x != this.scale.x)
         {
-            new platformer.bubbleEffect(this.game, this.position.x, this.position.y, this);
+            var frame = 0;
+            if(this.blue) frame = 4;
+            else frame = 2;
+            new platformer.bubbleEffect(this.level.game, this.position.x, this.position.y, frame, this.level);
             this.kill();
         }
             if(this.position.y < 88 || (this.position.y < 154 && this.position.y > 128) || (this.position.y < 220 && this.position.y > 194))
@@ -56,7 +65,10 @@ platformer.barrel.prototype.update = function(){
     {
         if(this.level.game.physics.arcade.overlap(this,this.level.mario) && this.level.poweredUp)
         {
-            new platformer.bubbleEffect(this.game, this.position.x, this.position.y, this);
+            var frame = 0;
+            if(this.blue) frame = 4;
+            else frame = 2;
+            new platformer.bubbleEffect(this.level.game, this.position.x, this.position.y, frame, this.level);
             this.kill();
         }
         if(this.initial == 'fall')

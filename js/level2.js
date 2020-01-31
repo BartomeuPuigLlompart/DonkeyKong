@@ -1,13 +1,19 @@
 var platformer = platformer || {};
 
 platformer.level2 ={
-    init:function(){
+    init:function(_score, _highScore, _lives){
         this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         this.scale.setGameSize(gameOptions.gameWidth,gameOptions.gameHeight);
         this.scale.pageAlignHorizontally = true;
         this.scale.pageAlignVertically = true;
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
         this.game.physics.arcade.gravity.y = gameOptions.heroGravity;
+        
+        if(_highScore != null) this.highScore = _highScore;
+        else this.highScore = 0.000001;
+        if(_lives != null) this.lives = _lives;
+        else this.lives = 5;
+        this.score = _score;
         
     },
     preload:function(){
@@ -78,7 +84,7 @@ platformer.level2 ={
         this.mario.animations.add('hammerIdle', [16,17], 10, true);
         this.mario.animations.add('hammerRun', [18,19], 10, true);
         this.mario.animations.add('death', [13,14, 15], 5, false);
-        this.lives = 5;
+        //this.lives = 5;
         this.livesSprite = [];
         this.livesSprite[0] = this.game.add.sprite(8, 24, 'Lives');
         this.livesSprite[1] = this.game.add.sprite(8+8, 24, 'Lives');
@@ -108,6 +114,8 @@ platformer.level2 ={
                 this.buttons[i].body.allowGravity = false;
             }
         
+        this.disabledButtons = 0
+        
         //music
         
         this.space = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -123,7 +131,7 @@ platformer.level2 ={
         this.bonusSprite[1] = this.game.add.sprite(176+8,48,'Numbers',parseInt(this.bonus.toString().charAt(2+1))+10*3);
         this.bonusSprite[2] = this.game.add.sprite(176+16,48,'Numbers',parseInt(this.bonus.toString().charAt(2+2))+10*3);
         this.bonusSprite[3] = this.game.add.sprite(176+24,48,'Numbers',parseInt(this.bonus.toString().charAt(2+3))+10*3);
-        this.score = 0.000001;
+        //this.score = 0.000001;
         this.scoreSprite = [];
         this.scoreSprite[0] = this.game.add.sprite(8,8,'Numbers',parseInt(this.score.toString().charAt(2+0))-1);
         this.scoreSprite[1] = this.game.add.sprite(8+8,8,'Numbers',parseInt(this.score.toString().charAt(2+1)));
@@ -131,7 +139,7 @@ platformer.level2 ={
         this.scoreSprite[3] = this.game.add.sprite(8+24,8,'Numbers',parseInt(this.score.toString().charAt(2+3)));
         this.scoreSprite[4] = this.game.add.sprite(8+32,8,'Numbers',parseInt(this.score.toString().charAt(2+4)));
         this.scoreSprite[5] = this.game.add.sprite(8+40,8,'Numbers',parseInt(this.score.toString().charAt(2+5)));
-        this.highScore = 0.000001;
+        //this.highScore = 0.000001;
         this.highScoreSprite = [];
         this.highScoreSprite[0] = this.game.add.sprite(88,8,'Numbers',parseInt(this.highScore.toString().charAt(2+0))-1);
         this.highScoreSprite[1] = this.game.add.sprite(88+8,8,'Numbers',parseInt(this.highScore.toString().charAt(2+1)));
@@ -198,6 +206,10 @@ platformer.level2 ={
             }
         else if(this.cursors.up.isDown && this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +10, 8, 1, 'Steps') != null && !this.poweredUp)
             {
+                this.mario.animations.stop();
+                this.mario.frame = 3;
+                if(Math.floor(this.mario.position.y) % 4 == 0)this.mario.scale.x = -1;
+                else if(Math.floor(this.mario.position.y) % 2 == 0) this.mario.scale.x = 1
                 this.mario.body.velocity.y = 0;
                 this.mario.body.velocity.x = 0;
                 this.mario.body.allowGravity = false;
@@ -206,6 +218,10 @@ platformer.level2 ={
             }
         else if(this.cursors.down.isDown && (this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +20, 8, 1, 'Steps') != null || this.map.getTileWorldXY(this.mario.position.x, this.mario.position.y +14, 8, 1, 'Steps') != null) && (!this.mario.body.touching.down||!this.mario.body.blocked.down) && !this.poweredUp)
             {
+                 this.mario.animations.stop();
+                this.mario.frame = 3;
+                if(Math.floor(this.mario.position.y) % 4 == 0)this.mario.scale.x = 1;
+                else if(Math.floor(this.mario.position.y) % 2 == 0) this.mario.scale.x = -1
                 this.mario.body.velocity.y = 0;
                 this.mario.body.velocity.x = 0;
                 this.mario.body.allowGravity = false;
@@ -244,8 +260,14 @@ platformer.level2 ={
                 if(this.game.physics.arcade.collide(this.mario,this.buttons[i])) {
                     new platformer.scoreText(this.game, this.buttons[i].position.x, this.buttons[i].position.y+5+this.buttons[i].height, 0, this);
                     this.buttons[i].kill();
+                    this.disabledButtons++;
                 }
             }
+        if(this.disabledButtons >= 8) {
+            if(!isNaN(this.score + this.bonus / 100))this.score += this.bonus / 100;
+            if(this.score > this.highScore)this.highScore = this.score;
+            this.game.state.start('level_1', true, false, this.highScore);
+        }
     },
     
     updatePrincess:function()
@@ -311,7 +333,7 @@ platformer.level2 ={
     
     render:function()
     {
-        this.game.debug.body(this.mario);
+        //this.game.debug.body(this.mario);
         //this.game.debug.body(this.boss);
         //this.game.debug.body(this.propTops[0]);
         //this.game.debug.body(this.silverWatchers[0]);
@@ -325,7 +347,7 @@ platformer.level2 ={
     {
       if(this.mario.frame == 17 && this.mario.body.blocked.down)this.mario.body.setSize(28,16, 3,10);
       else if(this.mario.frame == 18 && this.mario.body.blocked.down)this.mario.body.setSize(28,16, 5,10);
-      else this.mario.body.setSize(8,14, 23,12);
+      else this.mario.body.setSize(8,14, 23,11);
     },
 }
 
