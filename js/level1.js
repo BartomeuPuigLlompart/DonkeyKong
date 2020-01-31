@@ -28,6 +28,7 @@ platformer.level1 ={
         this.load.spritesheet('Princess', ruta+'princess.png', 16, 25);
         this.load.spritesheet('HelpMsg', ruta+'help.png', 25, 8);
         this.load.spritesheet('Numbers', ruta+'game_numbers.png', 8, 8);
+        this.load.spritesheet('scoreText', ruta+'gained_score.png', 15, 7);
         
         this.load.tilemap('Stage_1','assets/levels/Stage_1.json',null,Phaser.Tilemap.TILED_JSON);
         
