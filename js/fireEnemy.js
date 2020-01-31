@@ -11,11 +11,12 @@ platformer.fireEnemy = function(_game,_x,_y,_sumAnimVal, _level){
     this.animations.play('Normal');
     _game.physics.arcade.enable(this);
     this.body.setSize(this.body.width - 6, this.body.height-6, this.body.offset.x+5, this.body.offset.y+3);
-    this.checkWorldBounds = true;
-    this.outOfBoundsKill = true;
+   
     this.sumVal = 0;
     this.goUp = false;
     this.goDown = false;
+    
+    this.immovable = true;
 };
 
 
@@ -23,6 +24,14 @@ platformer.fireEnemy.prototype = Object.create(Phaser.Sprite.prototype);
 platformer.fireEnemy.prototype.constructor = platformer.fireEnemy;
 
 platformer.fireEnemy.prototype.update = function(){
+        if(this.position.x > this.previousPosition.x)
+        {
+            this.scale.x = 1;
+        }
+        else
+        {
+            this.scale.x = -1;
+        }
     if(!this.goUp && !this.goDown){
     this.level.game.physics.arcade.collide(this,this.level.walls);
     if(this.level.map.getTileWorldXY(this.position.x, this.position.y, 8, 1, 'Steps') != null && this.level.mario.position.y + (this.level.mario.height / 2) < this.position.y && this.game.rnd.integerInRange(1, 40) == 3)
@@ -37,12 +46,11 @@ platformer.fireEnemy.prototype.update = function(){
             this.goUp = false;
             this.goDown = true;
         }
-    if(Math.abs(this.position.x - this.level.mario.position.x) > this.width)
+    else if(Math.abs(this.position.x - this.level.mario.position.x) > 5)
         {
     this.sumVal = (this.level.mario.position.x - this.position.x) * 0.033;
     this.sumVal = (this.sumVal / Math.abs(this.sumVal))*0.5;
     this.body.position.x += this.sumVal;
-    this.scale.x = this.sumVal / Math.abs(this.sumVal);
         }
     }
     else if(this.goUp){

@@ -170,7 +170,8 @@ platformer.level1 ={
             this.powerCounter = 0;
         } 
         
-        console.log(this.poweredUp)
+         this.spawnFireAnim.onComplete.add(this.updateOilBarrel, this);
+        
         this.bodySize();
         this.updateScore();
         this.updateLives();
